@@ -9,7 +9,6 @@ import os
 import re
 import sys
 import time
-from PIL import Image
 from subprocess import call
 
 def get_sorted_thumbs_path(base_path, thumb_placeholder):
@@ -31,14 +30,13 @@ def convert_pdf_to_thumb(pdf_path, thumb_path, num_pages=None, bg_color=None):
 	cleanup_workspace('.', placeholder)
 
 	# Extract thumbs
-	call(['convert', '%s[0-%d]' % (pdf_path, num_pages-1), '-thumbnail', 'x156', placeholder])
+	# check if all pages are to be extracted or just some
+	pages_arg = '%s' % (pdf_path) if num_pages is None else '%s[0-%d]' % (pdf_path, num_pages-1)
+	call(['convert', pages_arg, '-thumbnail', 'x156', placeholder])
 
-	bg_arg = ' '
-	if bg_color is not None:
-		bg_arg = "-background '%s' " % bg_color
 	ph_split = placeholder.split('.')
 	montage_ph = '%s-*.%s'%(ph_split[0], ph_split[1])
-	montage_cmd = "montage%s-mode concatenate -quality 100 -tile x1 %s %s" % (bg_arg, montage_ph, thumb_path)
+	montage_cmd = "montage -mode concatenate -quality 100 -tile x1 %s %s" % (montage_ph, thumb_path)
 	os.system(montage_cmd)
 
 	# Clean up the generated thumbs
@@ -54,10 +52,9 @@ if __name__=='__main__':
 
 			Optional params:
 			num_pages: 		number of pages to be shown in the thumbnail
-			bg_color: 		background color must be in hex format #rrggbb
 
 		Example:
-			pdf2Thumb.py report.pdf report.png 7 #FFFFFF
+			pdf2Thumb.py report.pdf report.png 7
 		'''
 
 	# Compulsory params
@@ -65,7 +62,7 @@ if __name__=='__main__':
 	thumb_path = sys.argv[2]
 
 	# optional params
-	num_pages = 0
+	num_pages = None
 	if len(sys.argv) > 3:
 		num_pages = int(sys.argv[3])
 
