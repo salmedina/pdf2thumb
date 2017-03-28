@@ -16,7 +16,11 @@ The installation instructions can be found [here](https://www.imagemagick.org/sc
 
 ## Usage example
 
-It is fairly easy to use, you only need to give the pdf path, where the thumbnail will be stored and optionally the number of pages:
+It is fairly easy to use, you only need to give it:
+
+- the pdf path
+- where the thumbnail will be stored 
+- and optionally the number of pages:
 
 #### 3 pages
 
