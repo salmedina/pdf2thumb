@@ -1,37 +1,9 @@
-## Welcome to GitHub Pages
+# Event-Related Bias Removal for Real-time Disaster Events
 
-You can use the [editor on GitHub](https://github.com/salmedina/pdf2thumb/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+### Evangelia Spiliopoulou, Salvador Medina, Eduard Hovy, Alexander Hauptmann
+#### Findings of EMNLP 2020
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+Social  media  has  become  an  important  toolto share information about crisis events suchas natural disasters and mass attacks.  Detect-ing actionable posts that contain useful infor-mation  requires  rapid  analysis  of  huge  vol-umes of data in real-time.  This poses a com-plex problem due to the large amount of poststhat do not contain any actionable information.Furthermore, the classification of informationin real-time systems requires training on out-of-domain  data,  as  we  do  not  have  any  datafrom  a  new  emerging  crisis.   Prior  work  fo-cuses on models pre-trained on similar eventtypes.  However, those models capture unnec-essary event-specific biases,  like the locationof the event, which affect the generalizabilityand performance of the classifiers on new un-seen  data  from  an  emerging  new  event.    Inour work, we train an adversarial neural modelto remove latent event-specific biases and im-prove  the  performance  on  tweet  importanceclassification.
 
-### Markdown
+[\Paper[\]]() [\[Code\]]()
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/salmedina/pdf2thumb/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
