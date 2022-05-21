@@ -1,70 +1,92 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python3
 '''
 This program creates a thumbnail view of the given pdf
 the dependencies for this program to work are:
 - ImageMagick installed in the hosting system (this does the magic(k) o.O?)
 - PIL (ofc)
 '''
+import argparse
 import os
 import re
 import sys
 import time
 from subprocess import call
+from pathlib import Path
+from PIL import Image, ImageOps
 
-def get_sorted_thumbs_path(base_path, thumb_placeholder):
+
+def parse_args():
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-i', '--input_path', type=Path,
+						help='Path to the pdf file')
+	parser.add_argument('-o', '--output_path', type=Path,
+						help='Path of the output image with the thumbnails')
+	parser.add_argument('-n', '--num_pages', type=int, default=None,
+						help='Number of pages to be rendered')
+
+	return parser.parse_args()
+
+
+def get_sorted_thumbs_path(thumbs_dir, ext='.png'):
 	'''Gets the list of files that follow the placeholder convention'''
-	placeholder = thumb_placeholder.split('.')
-	regex_filter = '%s-[0-9]+.%s'%(placeholder[0], placeholder[1])
-	img_files = [f for f in os.listdir(base_path) if re.match(regex_filter, f)]
-	return sorted(img_files)
+	thumb_path_list = list(Path(thumbs_dir).glob(f'*{ext}'))
+	sorted_path_list = sorted(thumb_path_list, key=lambda x: int(str(x.stem).split('-')[1]))
+	
+	return sorted_path_list
+
 
 def cleanup_workspace(ws_path, placeholder):
 	'''Removes any previous thumbs generated in the folder'''
 	thumb_paths = get_sorted_thumbs_path(ws_path, placeholder)
 	map(os.remove, thumb_paths)
 
-def convert_pdf_to_thumb(pdf_path, thumb_path, num_pages=None, bg_color=None):
-	placeholder = 'page_thumb.png'
 
-	# Nice and clean, to avoid merging files from previous calls
-	cleanup_workspace('.', placeholder)
+def convert_pdf_to_thumb(pdf_path, thumb_path, num_pages=None, bg_color=None):
+	thumbs_dir = 'thumbs/'
+	placeholder = 'thumbs/page-%02d.png'
+
+	# Remove the files in the thumb dir
+	for thumb_path in Path(thumbs_dir).glob('*.png'):
+		os.remove(thumb_path)
 
 	# Extract thumbs
 	# check if all pages are to be extracted or just some
 	pages_arg = '%s' % (pdf_path) if num_pages is None else '%s[0-%d]' % (pdf_path, num_pages-1)
 	call(['convert', pages_arg, '-thumbnail', 'x156', placeholder])
 
-	ph_split = placeholder.split('.')
-	montage_ph = '%s-*.%s'%(ph_split[0], ph_split[1])
-	montage_cmd = "montage -mode concatenate -quality 100 -tile x1 %s %s" % (montage_ph, thumb_path)
-	os.system(montage_cmd)
+	thumb_path_list = get_sorted_thumbs_path(thumbs_dir, '.png')
+	thumb_img_list = [Image.open(p) for p in thumb_path_list]
+	
+	num_pages = len(thumb_path_list)
+	wp, hp = thumb_img_list[0].size
+	print(f'Page- w: {wp}   h: {hp}')
 
-	# Clean up the generated thumbs
-	cleanup_workspace('.', placeholder)
+	# New image
+	wi = int(wp + (num_pages - 1) * (2/3 * wp))
+	hi = int(1.5 * hp)
+	print(f'Image - w: {wi}   h: {hi}')
+	output_img = Image.new('RGBA', (wi, hi), (255, 255, 255, 0))
+
+	cur_x = wi - wp
+	for idx in range(num_pages):
+		cur_img = thumb_img_list[num_pages-1-idx]
+		cur_page = num_pages - idx
+		cur_y = 0 if cur_page % 2 != 0 else int(0.5 * hp)
+		output_img.paste(cur_img, (cur_x, cur_y))
+		cur_x -= int(2/3 * wp)
+
+	# Save output image
+	output_img.save('output.png', 'PNG')
+
+	# Remove the files in the thumb dir
+	for thumb_path in Path(thumbs_dir).glob('*.PNG'):
+		os.remove(thumb_path)
 
 
 if __name__=='__main__':
-	if len(sys.argv) < 3:
-		print '''
-		Usage: pdf2Thumb.py <pdf_path> <thumb_path> <num_pages> <bg_color>
-			pdf_path: 		path to the pdf file to be converted
-			thumb_path: 	path where the thumb will be saved
+	args = parse_args()
 
-			Optional params:
-			num_pages: 		number of pages to be shown in the thumbnail
-
-		Example:
-			pdf2Thumb.py report.pdf report.png 7
-		'''
-
-	# Compulsory params
-	pdf_path = sys.argv[1]
-	thumb_path = sys.argv[2]
-
-	# optional params
-	num_pages = None
-	if len(sys.argv) > 3:
-		num_pages = int(sys.argv[3])
-
-	convert_pdf_to_thumb(pdf_path, thumb_path, num_pages)
+	convert_pdf_to_thumb(args.input_path,
+						 args.output_path,
+						 args.num_pages)
 	
